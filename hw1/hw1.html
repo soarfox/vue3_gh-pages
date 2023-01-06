@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue 直播班 2022 冬季_第一週主線作業_Howard</title>
+
+    <!-- 因原本需引用Vue的cdn, 但改成由自寫的js檔裡進行引用Vue esm, 故在本HTML檔案內只要引用自寫js檔即可 -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.2/vue.global.js"></script> -->
+
+    <!-- 引用Bootstrap 5 CSS cdn, 參考自官網: https://getbootstrap.com/docs/5.3/getting-started/introduction/; 如果想要將本檔案放在CodePen網站使用, 則下方該行可刪除  -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+
+    <!-- 引用本次作業的CSS; 如果想要將本檔案放在CodePen網站使用, 則下方該行可刪除 -->
+    <link rel="stylesheet" type="text/css" href="./hw1.css">
+
+    <!-- 引用自寫js檔, 因為Vue的cdn是放在js檔內引用, 故必須要把下方這一行引用js檔放在HTML檔的</head>之前, 讓網頁一開始就讀取到Vue的cdn, 如此網頁才能正常執行Vue, 記得加入type="module"; 如果想要將本檔案放在CodePen網站使用, 則下方該行可刪除-->
+    <script src="./hw1.js" type="module"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="row py-3">
+                <div class="col-md-6">
+                    <h2>產品列表</h2>
+                    <table class="table table-hover mt-4">
+                        <thead>
+                            <tr>
+                                <th width="150">產品名稱</th>
+                                <th width="120">
+                                    原價
+                                </th>
+                                <th width="120">
+                                    售價
+                                </th>
+                                <th width="150">
+                                    是否啟用
+                                </th>
+                                <th width="120">
+                                    查看細節
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(product, key) in products" v-bind:key="product.title">
+                                <td width="150">
+                                    {{ product.title }}
+                                </td>
+                                <td width="120">
+                                    {{ product.origin_price }}
+                                </td>
+                                <td width="120">
+                                    {{ product.price }}
+                                </td>
+                                <td width="150">
+                                    <span class="text-success" v-if="product.is_enabled">啟用</span>
+                                    <span v-else>未啟用</span>
+                                </td>
+                                <td width="120">
+                                    <button type="button" class="btn btn-primary"
+                                        v-on:click="singleProduct = product">查看細節</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>目前有 <span>{{ products.length }}</span> 項產品</p>
+                </div>
+                <div class="col-md-6">
+                    <h2>單一產品細節</h2>
+                    <div v-if="singleProduct.title">
+                        <div class="card mb-3">
+                            <img v-bind:src="singleProduct.imageUrl" class="card-img-top primary-image" alt="主圖">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ singleProduct.title }}
+                                    <span class="badge bg-primary ms-2">{{ singleProduct.category}}</span>
+                                </h5>
+                                <p class="card-text">商品描述：{{ singleProduct.description }}</p>
+                                <p class="card-text">商品內容：{{ singleProduct.content }}</p>
+                                <div class="d-flex">
+                                    <p class="card-text me-2">{{ singleProduct.price }}</p>
+                                    <p class="card-text text-secondary"><del>{{ singleProduct.origin_price }}</del></p>
+                                    元 / {{ singleProduct.unit }}
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 直接針對物件內的陣列進行迴圈v-for綁定, id為陣列的索引值, 從0開始-->
+                        <span v-for="(img, id) in singleProduct.imagesUrl" v-bind:key="id">
+                            <img v-if="img" v-bind:src="img" alt="" class="images m-2">
+                        </span>
+                    </div>
+                    <!-- 如果singleProduct.title不成立, 則會顯示此行文字-->
+                    <p class="text-secondary" v-else>請選擇一個商品查看</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
