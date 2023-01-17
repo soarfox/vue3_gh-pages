@@ -35,7 +35,7 @@ createApp({
                 })
                 .catch((error) => {
                     // console.dir(error);
-                    alert(error);
+                    alert(error.data.message);
 
                     //因驗證登入失敗, 故執行跳轉到登入畫面; 返回上一層資料夾請使用兩個.符號
                     //參考資料:https://kumo.tw/article.php?id=8
@@ -53,8 +53,8 @@ createApp({
                     this.sortData();
                 })
                 .catch((error) => {
-                    console.dir(error);
-                    // alert(error.data);
+                    // console.dir(error);
+                    alert(error.data);
                 })
         },
         // 依據傳入的參數字串, 判斷要執行的對應行為
