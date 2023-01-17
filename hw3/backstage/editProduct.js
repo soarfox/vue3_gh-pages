@@ -33,8 +33,8 @@ createApp({
                     // console.log(response.data);
                     this.getData();
 
-                    //由於HTML中改以排序後的arrProducts陣列進行產品資料的呈現, 故必需在檢查使用者登入成功後, 就要呼叫此函式進行排序, 以利arrProducts內能夠擁有資料, 而得以被呈現在畫面上
-                    this.sortData();
+                    // //由於HTML中改以排序後的arrProducts陣列進行產品資料的呈現, 故必需在檢查使用者登入成功後, 就要呼叫此函式進行排序, 以利arrProducts內能夠擁有資料, 而得以被呈現在畫面上
+                    // this.sortData();
                 })
                 .catch((error) => {
                     // console.dir(error);
