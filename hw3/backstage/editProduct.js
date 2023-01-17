@@ -20,6 +20,8 @@ createApp({
             tempProduct: {
                 imagesUrl: [],
             },
+            //建立一個空陣列資料, 處理排序後的產品內容
+            arrProducts: []
         }
     },
     //方法(請記得尾字有"s")
@@ -46,6 +48,9 @@ createApp({
                 .then((response) => {
                     this.products = response.data.products;
                     // console.log(this.products);
+
+                    //進行資料排序(依照產品分類排序)
+                    this.sortData();
                 })
                 .catch((error) => {
                     console.dir(error);
@@ -140,6 +145,24 @@ createApp({
         createImagesUrlArray() {
             this.tempProduct.imagesUrl = [];
             this.tempProduct.imagesUrl.push('');
+        },
+        //將資料依照分類排序
+        //寫法參考自:https://ithelp.ithome.com.tw/articles/10225733
+        sortData() {
+            // 將API內的原始資料進行深層拷貝
+            const copyProducts = JSON.parse(JSON.stringify(this.products)); //深層拷貝; 這段JSON.stringify(a);是指先將a物件改成字串, 這段JSON.parse(...);是指將內容物改成JSON格式
+
+            //使用Object.values(...)把值取出來, 雖然這會失去原始資料內的id, 但因為是執行深層拷貝, 故不會影響到原本API內的原始資料, 在此僅作後台畫面上的顯示使用而已
+            this.arrProducts = Object.values(copyProducts);
+
+            //依據產品的類別進行排序, 目標是要將"相同類別的資料"擺放在一起, 待處理完成之後, 需在HTML畫面上以arrProducts作為呈現, 而非用products(即API內的原始資料)作呈現
+            this.arrProducts.sort(function(a, b){
+                if (a.category < b.category) {
+                    return 1; //當a.category值 < b.category值為true時, 代表b項較a項更大, 故把b項放在a項的前面, 數值越大者將被排得越前面
+                } else {
+                    return -1; //當a.category值 < b.category值為false時, 代表b項較a項更小, 故把b項放在a項的後面, 數值越大者將被排得越前面
+                }
+            });
         },
     },
     //生命週期(在mounted此階段代表畫面上的DOM元素都已經生成完成了)

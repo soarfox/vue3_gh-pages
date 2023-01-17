@@ -44,7 +44,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(product, index) in products" :key="product.id">
+          <!-- 此處改成以排序後的資料作呈現, 由於每個產品名稱必定不一樣, 故可以作為key值 -->
+          <tr v-for="(product, index) in arrProducts" :key="product.title">
             <td>{{ product.category }}</td>
             <td>{{ product.title }}</td>
             <!-- 文字對齊方式可參考:https://bootstrap5.hexschool.com/docs/5.0/utilities/text/, 作業範例是用"text-end", 但目前呈現出來看起來會有點離標題太遠, 故自行修改成"text-start"較合適 -->
