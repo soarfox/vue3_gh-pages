@@ -87,17 +87,17 @@
             <div class="row">
               <div class="col-sm-4">
                 <div class="mb-2">
+                  <h3 class="mb-3">主要圖片</h3>
                   <div class="mb-3">
-                    <label for="imageUrl" class="form-label">主要圖片</label>
+                    <label for="imageUrl" class="form-label">圖片網址</label>
                     <!-- imageUrl是產品API中內建的屬性名稱, 用於產品的主要圖片 -->
                     <input type="text" class="form-control" placeholder="請輸入圖片連結" v-model="tempProduct.imageUrl">
                   </div>
                   <!-- Bootstrap 中的圖片可利用 .類別名稱img-fluid, 將其設定為響應式圖片,參考資料:https://bootstrap5.hexschool.com/docs/5.0/content/images/ -->
-                  <img class="img-fluid" src="" alt="">
+                  <img class="img-fluid" :src="tempProduct.imageUrl" alt="">
                 </div>
 
                 <h3 class="mb-3">新增多張圖片</h3>
-
                 <div v-if="Array.isArray(tempProduct.imagesUrl)">
                   <div class="mb-1" v-for="(img, index) in tempProduct.imagesUrl" :key="index">
                     <div>
@@ -108,7 +108,8 @@
 
                     <img class="img-fluid" :src="img">
                   </div>
-                  <div v-if="tempProduct.imagesUrl.length === 0 || tempProduct.imagesUrl[tempProduct.imagesUrl.length-1]">
+                  <div
+                    v-if="tempProduct.imagesUrl.length === 0 || tempProduct.imagesUrl[tempProduct.imagesUrl.length-1]">
                     <button class="btn btn-outline-primary btn-sm d-block w-100"
                       @click="tempProduct.imagesUrl.push('')">
                       新增圖片
