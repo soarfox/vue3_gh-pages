@@ -1,6 +1,12 @@
 // 引用Vue esm且引用createApp方法進來, 但其實是把整包都抓下來後, 取出createApp, 其實檔案大小跟整包抓下來是一樣大的
 import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
 
+// 匯入分頁元件(pagination)的.js檔
+import pagination from './pagination.js';
+
+// 匯入modal元件的.js檔
+import product_modal from './product_modal.js';
+
 // 宣告此些變數, 避免瀏覽器一開始就報錯
 let productModal = null;
 let delProductModal = null;
@@ -21,10 +27,13 @@ createApp({
                 imagesUrl: [],
             },
             //建立一個空陣列資料, 處理排序後的產品內容
-            arrProducts: []
+            arrProducts: [],
+
+            // 建立一個分頁的空物件
+            pageObj:{},
         }
     },
-    //方法(請記得尾字有"s")
+    //方法(請記得methods的尾字有"s")
     methods: {
         checkLogin() {
             axios.post(`${this.apiUrl}/api/user/check`)
@@ -42,12 +51,16 @@ createApp({
                     location.href = '../login.html';
                 })
         },
-        // 取得產品列表資料
-        getData() {
-            axios.get(`${this.apiUrl}/api/${this.apiPath}/admin/products/all`)
+        // 取得產品列表資料, 依資料數目來決定頁數有幾頁, 且如果要決定當前要跳到第幾頁, API本身即可使用?page=後方加上一個數字來跳到該頁的畫面, 故在此將其加上一個變數, 來決定要跳到第幾頁(如果資料有11筆以上, 則第11~20筆資料會顯示於第二頁裡), 而如果直接寫getData(pageObj), 則pageObj預設會是undefined, 故需要使用"參數預設值"的方式(pageObj = 1), 也就是如果沒有提供pageObj參數的內容, 則將其預設值設定為1, 這是ES6的寫法
+        getData(pageObj = 1) {
+            axios.get(`${this.apiUrl}/api/${this.apiPath}/admin/products/?page=${pageObj}`)
                 .then((response) => {
                     this.products = response.data.products;
-                    // console.log(this.products);
+                    // console.log(response.data);
+
+                    // 將分頁的資訊儲存起來
+                    this.pageObj = response.data.pagination;
+                    // console.log(this.pageObj);
 
                     //進行資料排序(依照產品分類排序)
                     this.sortData();
@@ -83,8 +96,10 @@ createApp({
         // 當按下新增/編輯產品的確認按鈕, 先檢查所有必填欄位是否已填妥, 再進行後續動作
         checkedBtnOperation(isAddProduct, productId) {
             let checkResult = "";
+            
             //檢查所有必填欄位是否均已填妥, 如果得到空字串代表所有必填欄位均已填妥, 便關閉Modal視窗; 否則, 就跳出告警提醒使用者請確認
             checkResult = this.checkAllRequiredInput();
+           
             if(checkResult !== "" ){
                 alert(`"${checkResult}"不可為空白`);
                 return;
@@ -137,15 +152,16 @@ createApp({
         },
         // 確認所有必填欄位是否已填妥
         checkAllRequiredInput(){
-            if (this.tempProduct.title === ""){
+            // 當新建產品時, 各個必填欄位的值預設都是undefined, 故如果是在新建產品時就漏填資料, 也必須跳出告警視窗提醒使用者
+            if (this.tempProduct.title === undefined || this.tempProduct.title === ""){
                 return "標題";
-            }else if(this.tempProduct.category === ""){
+            }else if(this.tempProduct.category === undefined || this.tempProduct.category === ""){
                 return "分類";
-            }else if(this.tempProduct.unit === ""){
+            }else if(this.tempProduct.unit === undefined || this.tempProduct.unit === ""){
                 return "單位";
-            }else if(this.tempProduct.origin_price === ""){
+            }else if(this.tempProduct.origin_price === undefined || this.tempProduct.origin_price === ""){
                 return "原價";
-            }else if(this.tempProduct.price === ""){
+            }else if(this.tempProduct.price === undefined || this.tempProduct.price === ""){
                 return "售價";
             }else{
                 return "";
@@ -190,6 +206,10 @@ createApp({
                 }
             });
         },
+    },
+    // 通常會使用使用import(見開頭第四行)搭配區域元件, 且區域元件裡面可以註冊很多個子元件 (請記得components的尾字有"s")
+    components:{
+        pagination, product_modal,
     },
     //生命週期(在mounted此階段代表畫面上的DOM元素都已經生成完成了)
     mounted() {
