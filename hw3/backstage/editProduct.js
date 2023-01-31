@@ -83,8 +83,10 @@ createApp({
         // 當按下新增/編輯產品的確認按鈕, 先檢查所有必填欄位是否已填妥, 再進行後續動作
         checkedBtnOperation(isAddProduct, productId) {
             let checkResult = "";
+            
             //檢查所有必填欄位是否均已填妥, 如果得到空字串代表所有必填欄位均已填妥, 便關閉Modal視窗; 否則, 就跳出告警提醒使用者請確認
             checkResult = this.checkAllRequiredInput();
+           
             if(checkResult !== "" ){
                 alert(`"${checkResult}"不可為空白`);
                 return;
@@ -137,15 +139,16 @@ createApp({
         },
         // 確認所有必填欄位是否已填妥
         checkAllRequiredInput(){
-            if (this.tempProduct.title === ""){
+            // 當新建產品時, 各個必填欄位的值預設都是undefined, 故如果是在新建產品時就漏填資料, 也必須跳出告警視窗提醒使用者
+            if (this.tempProduct.title === undefined || this.tempProduct.title === ""){
                 return "標題";
-            }else if(this.tempProduct.category === ""){
+            }else if(this.tempProduct.category === undefined || this.tempProduct.category === ""){
                 return "分類";
-            }else if(this.tempProduct.unit === ""){
+            }else if(this.tempProduct.unit === undefined || this.tempProduct.unit === ""){
                 return "單位";
-            }else if(this.tempProduct.origin_price === ""){
+            }else if(this.tempProduct.origin_price === undefined || this.tempProduct.origin_price === ""){
                 return "原價";
-            }else if(this.tempProduct.price === ""){
+            }else if(this.tempProduct.price === undefined || this.tempProduct.price === ""){
                 return "售價";
             }else{
                 return "";
