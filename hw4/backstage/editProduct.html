@@ -76,47 +76,43 @@
         :get-products="getData"></pagination>
     </div>
 
-    <!-- Modal開始 -->
+    <!-- 以下包含各個Modal -->
     <!-- 產品內容的Modal(適用新增產品及編輯產品) -->
     <div id="productModal" ref="productModal" class="modal fade" tabindex="-1" aria-labelledby="productModalLabel"
       aria-hidden="true">
-      <!-- 在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外 -->
-      <product_modal 
-      :temp-product="tempProduct" 
-      :is-add-product="isAddProduct" :checked-btn-operation="checkedBtnOperation"
-      :create-images-url-array="createImagesUrlArray"></product_modal>
-    </div>
-    <!-- 刪除產品的model -->
-    <div id="delProductModal" ref="delProductModal" class="modal fade" tabindex="-1"
-      aria-labelledby="delProductModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content border-0">
-          <div class="modal-header bg-danger text-white">
-            <h5 id="delProductModalLabel" class="modal-title">
-              <span>刪除產品</span>
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <!-- 加入欲刪除的商品名稱 -->
-            是否刪除 "{{ this.tempProduct.title }}" 商品
-            <strong class="text-danger">(一經刪除，將無法恢復)。</strong>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-              取消
-            </button>
-            <button type="button" class="btn btn-danger" @click="deleteProduct(tempProduct.id)">
-              確認刪除
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Modal結束 -->
-  </div>
-  <script type="text/x-template" id="product_modal_template">
 
+      <!-- 已將"產品內容的Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(tempProduct, isAddProduct)或方法(checkedBtnOperation, createImagesUrlArray, closeProductModal)透過內部元件變數(在此依前述規則修改其命名為temp-product, is-add-product, checked-btn-operation, create-images-url-array, close-product-modal-window)通通傳入x-template樣板內使用 -->
+      <product_modal 
+        :temp-product="tempProduct" 
+        :is-add-product="isAddProduct"
+        :checked-btn-operation="checkedBtnOperation"
+        :create-images-url-array="createImagesUrlArray"
+        :close-product-modal-window="closeProductModal"
+      >
+      </product_modal>
+
+
+    </div>
+
+    
+    <!-- 刪除產品的Modal -->
+    <div id="delProductModal" ref="delProductModal" class="modal fade" tabindex="-1" aria-labelledby="delProductModalLabel" aria-hidden="true">
+
+      <!-- 已將"刪除產品的確認視窗Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(tempProduct)或方法(deleteProduct, closeDeleteModal)透過內部元件變數(在此依前述規則修改其命名為temp-product, delete-product, close-delete-modal-window)通通傳入x-template樣板內使用 -->
+      <delete_product_modal
+        :temp-product="tempProduct"
+        :delete-product="deleteProduct"
+        :close-delete-modal-window="closeDeleteModal"
+      >
+      </delete_product_modal>
+      
+    </div>
+    <!-- 各個Modal到此結束 -->
+  </div>
+
+
+  <!-- 使用x-template將可讓"產品內容Modal"的元件能重複在Vue的各處被使用; 請記得在editProduct.js內進行元件的匯入以及區域元件的註冊, 如此才能使用該product_modal元件 -->
+  <script type="text/x-template" id="product_modal_template">
     <div class="modal-dialog modal-xl">
       <div class="modal-content border-0">
         <div class="modal-header bg-dark text-white">
@@ -228,7 +224,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-outline-secondary" @click="closeProductModalWindow()">
             取消
           </button>
           <button type="button" class="btn btn-primary" @click="checkedBtnOperation(isAddProduct, tempProduct.id)">
@@ -237,8 +233,37 @@
         </div>
       </div>
     </div>
+  </script>
+
+  <!-- 使用x-template將可讓"刪除產品的確認視窗Modal"的元件能重複在Vue的各處被使用; 請記得在editProduct.js內進行元件的匯入以及區域元件的註冊, 如此才能使用該delete_product_modal元件 -->
+  <script type="text/x-template" id="delete_product_modal_template">
+
+    <div class="modal-dialog">
+      <div class="modal-content border-0">
+        <div class="modal-header bg-danger text-white">
+          <h5 id="delProductModalLabel" class="modal-title">
+            <span>刪除產品</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- 加入欲刪除的商品名稱 -->
+          是否刪除 "{{ this.tempProduct.title }}" 商品
+          <strong class="text-danger">(一經刪除，將無法恢復)。</strong>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" @click="closeDeleteModalWindow()">
+            取消
+          </button>
+          <button type="button" class="btn btn-danger" @click="deleteProduct(tempProduct.id)">
+            確認刪除
+          </button>
+        </div>
+      </div>
+    </div>
 
   </script>
+
   <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
     integrity='sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=='
     crossorigin='anonymous'></script>

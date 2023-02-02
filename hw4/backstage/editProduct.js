@@ -4,12 +4,15 @@ import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
 // 匯入分頁元件(pagination)的.js檔
 import pagination from './pagination.js';
 
-// 匯入modal元件的.js檔
+// 匯入產品內容的Modal元件的.js檔
 import product_modal from './product_modal.js';
 
-// 宣告此些變數, 避免瀏覽器一開始就報錯
-let productModal = null;
-let delProductModal = null;
+// 匯入刪除產品的確認視窗Modal元件的.js檔
+import delete_product_modal from './delete_product_modal.js';
+
+// 宣告此些變數, 避免瀏覽器一開始就報錯, 且當生命週期走到mounted階段時, 代表畫面都已經生成完畢, 這時候再來抓取網頁裡的DOM元素時, 才能正確抓取得到, 故在生命週期mounted內定義該些變數的內容(詳細說明請見:2023 Vue直播班的影片名稱:"第三週額外補充，Bootstrap JS 部分"的14分01秒處往後看)
+let productModal = '';
+let delProductModal = '';
 
 // 產品資料格式
 createApp({
@@ -206,14 +209,22 @@ createApp({
                 }
             });
         },
+        // 關閉"產品資料Modal"的方法
+        closeProductModal(){
+            productModal.hide();
+        },
+        // 關閉"刪除產品資料Modal"的方法
+        closeDeleteModal(){
+            delProductModal.hide();
+        }
     },
     // 通常會使用使用import(見開頭第四行)搭配區域元件, 且區域元件裡面可以註冊很多個子元件 (請記得components的尾字有"s")
     components:{
-        pagination, product_modal,
+        pagination, product_modal, delete_product_modal
     },
     //生命週期(在mounted此階段代表畫面上的DOM元素都已經生成完成了)
     mounted() {
-        //在建立Bootstrap Modal元件的實體之前, 記得先在最外層宣告modal變數為null, 避免因為找不到該變數而報錯
+        //在建立Bootstrap Modal元件的實體之前, 記得先在最外層宣告modal變數為'', 避免因為找不到該變數而報錯, 而當生命週期走到mounted時代表畫面都已經生成完畢, 此時進行抓取網頁DOM元素時才不會出錯, 故在此階段才將Modal實體化
         productModal = new bootstrap.Modal(document.getElementById('productModal'));
         delProductModal = new bootstrap.Modal(document.getElementById('delProductModal'));
 
