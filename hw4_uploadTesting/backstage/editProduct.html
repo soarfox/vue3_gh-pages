@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第四週主線作業_後台_新增分頁元件_Howard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+  <!-- 引用自寫js檔, 因為Vue的cdn是放在js檔內引用, 故必須要把下方這一行引用js檔放在HTML檔的</head>之前, 讓網頁一開始就讀取到Vue的cdn, 如此網頁才能正常執行Vue, 記得加入type="module"; 如果想要將本檔案放在CodePen網站使用, 則下方該行可刪除-->
+  <script src="./editProduct.js" type="module"></script>
+
+</head>
+
+<body>
+  <div id="app">
+    <div class="container">
+      <div class="text-end mt-4">
+        <!-- 因為建立新產品的時候只使用一個參數('new'), 故在openProductModal(operation, product)方法接收參數時, 請記得第一個參數要擺放的是字串參數(operation), 而非產品內容(product), 這樣才能正確接收到字串資料並進行後續動作 -->
+        <button class="btn btn-primary" @click="openProductModal('new')">
+          建立新的產品
+        </button>
+      </div>
+      
+      <!-- 已將"單一檔案上傳"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料()或方法(singleFileUpload)透過內部元件變數(在此依前述規則修改其命名為single-file-upload)通通傳入x-template樣板內使用 -->
+      <upload_file
+      :single-file-upload="singleFileUpload"
+      
+      >
+      </upload_file>
+      
+      <table class="table mt-4">
+        <thead>
+          <tr>
+            <th width="120">
+              分類
+            </th>
+            <th>產品名稱</th>
+            <th width="120">
+              原價
+            </th>
+            <th width="120">
+              售價
+            </th>
+            <th width="100">
+              是否啟用
+            </th>
+            <th width="120">
+              編輯
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 此處改成以排序後的資料作呈現, 由於每個產品名稱必定不一樣, 故可以作為key值 -->
+          <tr v-for="(product, index) in arrProducts" :key="product.title">
+            <td>{{ product.category }}</td>
+            <td>{{ product.title }}</td>
+            <!-- 文字對齊方式可參考:https://bootstrap5.hexschool.com/docs/5.0/utilities/text/, 作業範例是用"text-end", 但目前呈現出來看起來會有點離標題太遠, 故自行修改成"text-start"較合適 -->
+            <td class="text-start">{{ product.origin_price}}</td>
+            <td class="text-start">{{ product.price}}</td>
+            <td>
+              <span class="text-success" v-if="product.is_enabled">啟用</span>
+              <span v-else>未啟用</span>
+            </td>
+            <td>
+              <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="openProductModal('edit', product)">
+                  編輯
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                  @click="openProductModal('delete', product)">
+                  刪除
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 將已經註冊好的元件(pagination)放在此處 -->
+      <!-- 口訣:先內(部元件變數)後外(部資料變數), 且元件變數的名稱記得以小寫為主, :innerpages="pageObj -->
+      <!-- 在此使用props的寫法, 把方法當成資料來傳入pagination元件裡面, 口訣一樣是先內後外(內部原本是getProducts, 但要把大寫改成小寫, 且原本大寫字母前方要加上-符號), 而外部的方法名稱是getData -->
+      <pagination :innerpages="pageObj"
+        :get-products="getData"></pagination>
+    </div>
+
+    <!-- 以下包含各個Modal -->
+    <!-- 產品內容的Modal(適用新增產品及編輯產品) -->
+    <div id="productModal" ref="productModal" class="modal fade" tabindex="-1" aria-labelledby="productModalLabel"
+      aria-hidden="true">
+
+      <!-- 已將"產品內容的Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(tempProduct, isAddProduct)或方法(checkedBtnOperation, createImagesUrlArray, closeProductModal)透過內部元件變數(在此依前述規則修改其命名為temp-product, is-add-product, checked-btn-operation, create-images-url-array, close-product-modal-window)通通傳入x-template樣板內使用 -->
+      <product_modal 
+        :temp-product="tempProduct" 
+        :is-add-product="isAddProduct"
+        :checked-btn-operation="checkedBtnOperation"
+        :create-images-url-array="createImagesUrlArray"
+        :close-product-modal-window="closeProductModal"
+      >
+      </product_modal>
+
+
+    </div>
+
+    
+    <!-- 刪除產品的Modal -->
+    <div id="delProductModal" ref="delProductModal" class="modal fade" tabindex="-1" aria-labelledby="delProductModalLabel" aria-hidden="true">
+
+      <!-- 已將"刪除產品的確認視窗Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(tempProduct)或方法(deleteProduct, closeDeleteModal)透過內部元件變數(在此依前述規則修改其命名為temp-product, delete-product, close-delete-modal-window)通通傳入x-template樣板內使用 -->
+      <delete_product_modal
+        :temp-product="tempProduct"
+        :delete-product="deleteProduct"
+        :close-delete-modal-window="closeDeleteModal"
+      >
+      </delete_product_modal>
+      
+    </div>
+    <!-- 各個Modal到此結束 -->
+  </div>
+
+
+  <!-- 使用x-template將可讓"產品內容Modal"的元件能重複在Vue的各處被使用; 請記得在editProduct.js內進行元件的匯入以及區域元件的註冊, 如此才能使用該product_modal元件 -->
+  <script type="text/x-template" id="product_modal_template">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content border-0">
+        <div class="modal-header bg-dark text-white">
+          <h5 id="productModalLabel" class="modal-title">
+            <!-- 透過isAddProduct的布林值, 來判斷當前是要顯示"新增產品"或"編輯產品" -->
+            <span v-if="isAddProduct">新增產品</span>
+            <span v-else>編輯產品</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-sm-4">
+              <div class="mb-2">
+                <h3 class="mb-3">主要圖片</h3>
+                <div class="mb-3">
+                  <label for="imageUrl" class="form-label">圖片網址</label>
+                  <!-- imageUrl是產品API中內建的屬性名稱, 用於產品的主要圖片 -->
+                  <input type="text" class="form-control" placeholder="請輸入圖片連結" v-model="tempProduct.imageUrl">
+                </div>
+                <!-- Bootstrap 中的圖片可利用 .類別名稱img-fluid, 將其設定為響應式圖片,參考資料:https://bootstrap5.hexschool.com/docs/5.0/content/images/ -->
+                <img class="img-fluid" :src="tempProduct.imageUrl" alt="">
+              </div>
+
+              <h3 class="mb-3">新增多張圖片</h3>
+              <div v-if="Array.isArray(tempProduct.imagesUrl)">
+                <div class="mb-1" v-for="(img, index) in tempProduct.imagesUrl" :key="index">
+                  <div>
+                    <label class="form-label">圖片網址</label>
+                    <input v-model="tempProduct.imagesUrl[index]" type="text" class="form-control"
+                      placeholder="請輸入圖片網址">
+                  </div>
+
+                  <img class="img-fluid" :src="img">
+                </div>
+                <div
+                  v-if="tempProduct.imagesUrl.length === 0 || tempProduct.imagesUrl[tempProduct.imagesUrl.length-1]">
+                  <button class="btn btn-outline-primary btn-sm d-block w-100"
+                    @click="tempProduct.imagesUrl.push('')">
+                    新增圖片
+                  </button>
+                </div>
+                <div v-else>
+                  <button class="btn btn-outline-danger btn-sm d-block w-100" @click="tempProduct.imagesUrl.pop()">
+                    刪除圖片
+                  </button>
+                </div>
+              </div>
+              <!-- 如果tempProduct.imagesUrl不是一個陣列(或者其不存在時), 則呼叫createImages方法創建一個空陣列, 且直接在tempProduct.imagesUrl內新增一個空字串'', 接下來就等使用者在input欄位內輸入圖片網址後, 因為input有使用v-model雙向綁定, 故會直接把原本空字串給覆蓋掉, 此種狀況適用在當編輯產品資料時, 因為該產品本身沒有圖片, 故需要呼叫一個createImages方法創建一個空陣列, 這樣才能夠新增圖片 -->
+              <div v-else>
+                <button class="btn btn-outline-primary btn-sm d-block w-100" @click="createImagesUrlArray">
+                  新增圖片
+                </button>
+              </div>
+            </div>
+            <div class="col-sm-8">
+              <div class="mb-3">
+                <label for="title" class="form-label">標題</label>
+                <input id="title" type="text" class="form-control" placeholder="請輸入標題" v-model="tempProduct.title">
+              </div>
+              <div class="row">
+                <div class="mb-3 col-md-6">
+                  <label for="category" class="form-label">分類</label>
+                  <input id="category" type="text" class="form-control" placeholder="請輸入分類"
+                    v-model="tempProduct.category">
+                </div>
+                <div class="mb-3 col-md-6">
+                  <label for="price" class="form-label">單位</label>
+                  <input id="unit" type="text" class="form-control" placeholder="請輸入單位" v-model="tempProduct.unit">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="mb-3 col-md-6">
+                  <label for="origin_price" class="form-label">原價</label>
+                  <!-- 在金額部分的v-model加上.number修飾符, 確保輸入的值為數字 -->
+                  <input id="origin_price" type="number" min="0" class="form-control" placeholder="請輸入原價"
+                    v-model.number="tempProduct.origin_price">
+                </div>
+                <div class="mb-3 col-md-6">
+                  <label for="price" class="form-label">售價</label>
+                  <!-- 在金額部分的v-model加上.number修飾符, 確保輸入的值為數字 -->
+                  <input id="price" type="number" min="0" class="form-control" placeholder="請輸入售價"
+                    v-model.number="tempProduct.price">
+                </div>
+              </div>
+              <hr>
+
+              <div class="mb-3">
+                <label for="description" class="form-label">產品描述</label>
+                <textarea id="description" type="text" class="form-control" placeholder="請輸入產品描述"
+                  v-model="tempProduct.description">
+               </textarea>
+              </div>
+              <div class="mb-3">
+                <label for="content" class="form-label">說明內容</label>
+                <textarea id="description" type="text" class="form-control" placeholder="請輸入說明內容"
+                  v-model="tempProduct.content">
+               </textarea>
+              </div>
+
+              <!-- 自行新增的一個欄位:商品評價星級 -->
+              <!-- 欄位寬度等設定可以參考BootStrap官網:https://getbootstrap.com/docs/5.3/utilities/spacing/#margin-and-padding -->
+              <div class="mb-3 col-md-6">
+                <label for="productRatingStars" class="form-label">商品評價星級</label>
+                <!-- 在此部分的v-model加上.number修飾符, 確保輸入的值為數字 -->
+                <input id="productRatingStars" type="number" class="form-control" placeholder="請輸入評價星級(1~5)"
+                  v-model.number="tempProduct.productRatingStars">
+              </div>
+
+
+              <div class="mb-3">
+                <div class="form-check">
+                  <input id="is_enabled" class="form-check-input" type="checkbox" :true-value="1" :false-value="0"
+                    v-model="tempProduct.is_enabled">
+                  <label class="form-check-label" for="is_enabled">是否啟用</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" @click="closeProductModalWindow()">
+            取消
+          </button>
+          <button type="button" class="btn btn-primary" @click="checkedBtnOperation(isAddProduct, tempProduct.id)">
+            確認
+          </button>
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <!-- 使用x-template將可讓"刪除產品的確認視窗Modal"的元件能重複在Vue的各處被使用; 請記得在editProduct.js內進行元件的匯入以及區域元件的註冊, 如此才能使用該delete_product_modal元件 -->
+  <script type="text/x-template" id="delete_product_modal_template">
+
+    <div class="modal-dialog">
+      <div class="modal-content border-0">
+        <div class="modal-header bg-danger text-white">
+          <h5 id="delProductModalLabel" class="modal-title">
+            <span>刪除產品</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- 加入欲刪除的商品名稱 -->
+          是否刪除 "{{ this.tempProduct.title }}" 商品
+          <strong class="text-danger">(一經刪除，將無法恢復)。</strong>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" @click="closeDeleteModalWindow()">
+            取消
+          </button>
+          <button type="button" class="btn btn-danger" @click="deleteProduct(tempProduct.id)">
+            確認刪除
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </script>
+
+  <script type="text/x-template" id="upload_file_template">
+    <div>
+      <p>
+      這裡要測試檔案上傳
+      </p>
+      <!-- 當使用者選擇好要上傳的檔案之後, 會觸發change事件, 透過函式進行後續處理 -->
+      <input 
+        type="file"
+        class="form-control"
+        id="pic_file_uploadField"
+        placeholder="請選擇圖片或檔案"
+        @change="singleFileUpload()"
+      />
+    </div>
+  </script>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
+    integrity='sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=='
+    crossorigin='anonymous'></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
+    integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"
+    integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
+    crossorigin="anonymous"></script>
+
+</body>
+
+</html>
