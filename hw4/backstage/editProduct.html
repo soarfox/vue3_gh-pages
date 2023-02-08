@@ -22,6 +22,7 @@
           建立新的產品
         </button>
       </div>
+      
       <table class="table mt-4">
         <thead>
           <tr>
@@ -81,24 +82,24 @@
     <div id="productModal" ref="productModal" class="modal fade" tabindex="-1" aria-labelledby="productModalLabel"
       aria-hidden="true">
 
-      <!-- 已將"產品內容的Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(tempProduct, isAddProduct)或方法(checkedBtnOperation, createImagesUrlArray, closeProductModal)透過內部元件變數(在此依前述規則修改其命名為temp-product, is-add-product, checked-btn-operation, create-images-url-array, close-product-modal-window)通通傳入x-template樣板內使用 -->
+      <!-- 已將"產品內容的Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(tempProduct, isAddProduct, mainPictureUrl)或方法(checkedBtnOperation, createImagesUrlArray, closeProductModal)透過內部元件變數(在此依前述規則修改其命名為temp-product, is-add-product, main-picture-url, checked-btn-operation, create-images-url-array, close-product-modal-window)通通傳入x-template樣板內使用, 且在該樣板內則維持使用props內所命名的資料或方法的英文大小寫字母不變, 例如:main-picture-url在props內定義的是有大小寫的mainPictureUrl, 在樣板內就直接使用mainPictureUrl即可-->
       <product_modal 
         :temp-product="tempProduct" 
         :is-add-product="isAddProduct"
         :checked-btn-operation="checkedBtnOperation"
         :create-images-url-array="createImagesUrlArray"
         :close-product-modal-window="closeProductModal"
+        :single-file-upload="singleFileUpload"
+        :main-picture-url="mainPicUrl"
       >
       </product_modal>
-
-
     </div>
 
     
     <!-- 刪除產品的Modal -->
     <div id="delProductModal" ref="delProductModal" class="modal fade" tabindex="-1" aria-labelledby="delProductModalLabel" aria-hidden="true">
 
-      <!-- 已將"刪除產品的確認視窗Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(tempProduct)或方法(deleteProduct, closeDeleteModal)透過內部元件變數(在此依前述規則修改其命名為temp-product, delete-product, close-delete-modal-window)通通傳入x-template樣板內使用 -->
+      <!-- 已將"刪除產品的確認視窗Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(tempProduct)或方法(deleteProduct, closeDeleteModal)透過內部元件變數(在此依前述規則修改其命名為temp-product, delete-product, close-delete-modal-window)通通傳入x-template樣板內使用, 且在該樣板內則維持使用props內所命名的資料或方法的英文大小寫字母不變, 例如:close-delete-modal-window在props內定義的是有大小寫的closeDeleteModalWindow, 在樣板內就直接使用closeDeleteModalWindow即可 -->
       <delete_product_modal
         :temp-product="tempProduct"
         :delete-product="deleteProduct"
@@ -128,8 +129,20 @@
             <div class="col-sm-4">
               <div class="mb-2">
                 <h3 class="mb-3">主要圖片</h3>
+
+                <div>
+                  <!-- 當使用者選擇好要上傳的檔案之後, 會觸發change事件, 透過函式進行後續處理 -->
+                  <input 
+                    type="file"
+                    class="form-control"
+                    id="pic_file_uploadField"
+                    placeholder="請選擇圖片或檔案"
+                    @change="singleFileUpload()"
+                  />
+                </div>
+
                 <div class="mb-3">
-                  <label for="imageUrl" class="form-label">圖片網址</label>
+                  <label for="imageUrl" class="form-label">主要圖片的網址</label>
                   <!-- imageUrl是產品API中內建的屬性名稱, 用於產品的主要圖片 -->
                   <input type="text" class="form-control" placeholder="請輸入圖片連結" v-model="tempProduct.imageUrl">
                 </div>
@@ -213,6 +226,17 @@
                   v-model="tempProduct.content">
                </textarea>
               </div>
+
+              <!-- 自行新增的一個欄位:商品評價星級 -->
+              <!-- 欄位寬度等設定可以參考BootStrap官網:https://getbootstrap.com/docs/5.3/utilities/spacing/#margin-and-padding -->
+              <div class="mb-3 col-md-6">
+                <label for="productRatingStars" class="form-label">商品評價星級</label>
+                <!-- 在此部分的v-model加上.number修飾符, 確保輸入的值為數字 -->
+                <input id="productRatingStars" type="number" class="form-control" placeholder="請輸入評價星級(1~5)"
+                  v-model.number="tempProduct.productRatingStars">
+              </div>
+
+
               <div class="mb-3">
                 <div class="form-check">
                   <input id="is_enabled" class="form-check-input" type="checkbox" :true-value="1" :false-value="0"
@@ -237,7 +261,6 @@
 
   <!-- 使用x-template將可讓"刪除產品的確認視窗Modal"的元件能重複在Vue的各處被使用; 請記得在editProduct.js內進行元件的匯入以及區域元件的註冊, 如此才能使用該delete_product_modal元件 -->
   <script type="text/x-template" id="delete_product_modal_template">
-
     <div class="modal-dialog">
       <div class="modal-content border-0">
         <div class="modal-header bg-danger text-white">
@@ -261,7 +284,6 @@
         </div>
       </div>
     </div>
-
   </script>
 
   <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
@@ -273,7 +295,5 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"
     integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
     crossorigin="anonymous"></script>
-
 </body>
-
 </html>

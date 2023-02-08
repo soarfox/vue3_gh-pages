@@ -26,14 +26,28 @@ createApp({
             //建立一個空陣列資料, 用來接收從axios回傳回來的商品資料
             products: [],
             // 建立一個暫時性的產品物件, 用於新增產品內容使用, 其物件內的其他資料由欄位綁v-model進行資料新增, 就不需特別在此處先新增預設屬性
+            // 新增一個自訂的欄位(商品評價星級productRatingStars)
             tempProduct: {
                 imagesUrl: [],
+                productRatingStars: ''
             },
             //建立一個空陣列資料, 處理排序後的產品內容
             arrProducts: [],
 
             // 建立一個分頁的空物件
             pageObj:{},
+
+            // 建立一個抓取檔案上傳DOM元素的變數
+            fileUpload: null,
+
+            // 建立一個承接上傳檔案資訊的變數
+            singleFileInfo: null,
+
+            // 建立一個承接上傳檔案表單實體
+            formData: new FormData(),
+
+            // 建立一個上傳圖片後, 承接圖片網址的變數
+            mainPicUrl: '',
         }
     },
     //方法(請記得methods的尾字有"s")
@@ -216,7 +230,56 @@ createApp({
         // 關閉"刪除產品資料Modal"的方法
         closeDeleteModal(){
             delProductModal.hide();
+        },
+        // 取得網頁登入後的Token並儲存起來, 以利執行各種需要驗證使用者身份的API
+        saveToken(){
+            // //取得 Token（Token僅需要設定一次)
+            const myToken = document.cookie.replace(/(?:(?:^|.*;\s*)hexToken\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+
+            //參考自axios文件的此處:https://github.com/axios/axios#global-axios-defaults
+            axios.defaults.headers.common['Authorization'] = myToken;
+        },
+        // 當放入欲上傳的檔案後, 會觸發這個函式進行後續處理
+        singleFileUpload(){
+
+            alert(`圖片正在上傳中, 請稍後!`);
+
+            // 因為產品Modal是用元件方式呈現, 故元件內資料與元件外的資料是彼此獨立的, 所以需要再次取得網頁登入後的Token並儲存起來, 以利執行上傳檔案的API
+            this.saveToken();
+
+            // 因為上傳檔案是以form格式, 其內容是類陣列的形式, 而檔案資訊位於files[0], 因此上傳後的檔案資訊需要用一個變數將其儲存起來, 以利稍後使用
+            this.singleFileInfo = this.fileUpload.files[0];
+
+            // 因為上傳檔案通常是以form表單方式, 而其實體內有一個屬性名為file-to-upload, 故在該屬性填入上傳檔案的資訊
+            this.formData.append('file-to-upload', this.singleFileInfo);
+            
+            // 此上傳API本身需要有一個form表單的值一併帶入, 方可成功上傳, 在此請記得帶上form表單資料
+            axios.post(`${this.apiUrl}/api/${this.apiPath}/admin/upload`, this.formData)
+            .then((response) =>{
+                // console.log(response);
+
+                // 上傳成功後, 圖片網址會在這裡response.data.imageUrl
+                this.mainPicUrl = response.data.imageUrl;
+                // console.log(this.mainPicUrl);
+                alert(`圖片上傳成功`);
+
+                // 完成上傳後, 將本次上傳資料清空, 且將form表單內所添加的屬性刪除, 避免持續添加一樣的屬性卻每次上傳成功後都顯示同一張圖片
+                this.fileUpload.value = '';
+                this.formData.delete('file-to-upload');
+
+                // 將商品的主要圖片的欄位內容, 替換成剛剛上傳成功的檔案網址
+                this.tempProduct.imageUrl = this.mainPicUrl;
+            })
+            .catch((error)=>{
+                console.log(error);
+                // 預計會顯示'檔案格式錯誤，僅限上傳 jpg、jpeg 與 png 格式。'
+                alert(error.data.message);
+                // 完成上傳後, 將本次上傳資料清空, 且將form表單內所添加的屬性刪除, 避免持續添加一樣的屬性卻每次上傳成功後都顯示同一張圖片
+                this.fileUpload.value = '';
+                this.formData.delete('file-to-upload');
+            })
         }
+
     },
     // 通常會使用使用import(見開頭第四行)搭配區域元件, 且區域元件裡面可以註冊很多個子元件 (請記得components的尾字有"s")
     components:{
@@ -228,11 +291,11 @@ createApp({
         productModal = new bootstrap.Modal(document.getElementById('productModal'));
         delProductModal = new bootstrap.Modal(document.getElementById('delProductModal'));
 
-        //取得 Token（Token 僅需要設定一次, 參考資料同上
-        const myToken = document.cookie.replace(/(?:(?:^|.*;\s*)hexToken\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-
-        //參考自axios文件的此處:https://github.com/axios/axios#global-axios-defaults
-        axios.defaults.headers.common['Authorization'] = myToken;
+        // 抓取檔案上傳的DOM元素
+        this.fileUpload = document.querySelector('#pic_file_uploadField');
+        
+        // 取得網頁登入後的Token並儲存起來, 以利執行各種需要驗證使用者身份的API
+        this.saveToken();
 
         //呼叫檢查登入函式, 驗證人員身份, 如果尚未登入則透過函式導回登入畫面
         this.checkLogin();
