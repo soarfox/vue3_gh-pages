@@ -2,13 +2,13 @@
 import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
 
 // 匯入分頁元件(pagination)的.js檔
-import pagination from './pagination.js';
+import pagination from './components/pagination.js';
 
 // 匯入產品內容的Modal元件的.js檔
-import product_modal from './product_modal.js';
+import product_modal from './components/product_modal.js';
 
 // 匯入刪除產品的確認視窗Modal元件的.js檔
-import delete_product_modal from './delete_product_modal.js';
+import delete_product_modal from './components/delete_product_modal.js';
 
 // 宣告此些變數, 避免瀏覽器一開始就報錯, 且當生命週期走到mounted階段時, 代表畫面都已經生成完畢, 這時候再來抓取網頁裡的DOM元素時, 才能正確抓取得到, 故在生命週期mounted內定義該些變數的內容(詳細說明請見:2023 Vue直播班的影片名稱:"第三週額外補充，Bootstrap JS 部分"的14分01秒處往後看)
 let productModal = '';
