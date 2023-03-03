@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第五週主線作業_Howard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css'
+    integrity='sha512-q3eWabyZPc1XTCmF+8/LuE1ozpg5xxn7iO89yfSOd5/oKvyqLngoNGsx8jq92Y8eXJ/IRxQbEC+FGSYxtk2oiw=='
+    crossorigin='anonymous' />
+</head>
+
+<body>
+  <div id="app">
+    <div class="container">
+      <div class="mt-4">
+
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>圖片</th>
+              <th>商品名稱</th>
+              <th>價格</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in products">
+              <td style="width: 200px">
+                <!-- :style是指將style的樣式套用到圖片上 -->
+                <div style="height: 100px; background-size: cover; background-position: center"
+                  :style="{backgroundImage: `url(${item.imageUrl})`}">
+                </div>
+              </td>
+              <td>
+                {{ item.title }}
+              </td>
+              <td>
+                <del class="h6">原價 {{ item.origin_price }} 元</del>
+                <div class="h5">現在只要 {{ item.price }} 元</div>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button type="button" class="btn btn-outline-secondary"
+                    @click="getProductDetail(item.id)"
+                    :disabled = "loadingStatus.loadingItem === item.id || !item.is_enabled">
+                    <!-- 當讀取過程中需要顯示spinner效果 -->
+                    <i class="fas fa-spinner fa-pulse"
+                    v-if="loadingStatus.loadingItem === item.id"></i>
+                    查看更多
+                  </button>
+                  <!-- 當按下加入購物車按鈕時會取得產品id, 或者是當該產品的設定為"不啟用"時, 則暫時停止使用該加入購物車按鈕的功能(即使用v-bind搭配disabled標籤來達成), 且因為其正在執行加入購物車動作, 故也將旋轉圖示的效果顯現出來; 若該loadingStatus.loadingItem的值於加入購物車API執行成功時被清除掉了, 則代表已經加入購物車完成, 故便不需顯示此旋轉圖示, 因此此處會使用v-if來進行判斷 -->
+                  <button type="button" class="btn btn-outline-danger"
+                    @click = "addToCart(item.id)"
+                    :disabled = "loadingStatus.loadingItem === item.id || !item.is_enabled">
+                    <i class="fas fa-spinner fa-pulse"
+                    v-if="loadingStatus.loadingItem === item.id"></i>
+                    加到購物車
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- 購物車列表 -->
+        <div class="text-end">
+          <!-- 如果購物車列表內的數量是0, 則無法點擊清空購物車的按鈕 -->
+          <button class="btn btn-outline-danger" type="button"
+          @click="deleteAllCartItem()"
+          :disabled="!this.cartProducts.length">清空購物車</button>
+        </div>
+        <table class="table align-middle" v-if="this.cartProducts.length">
+          <thead>
+            <tr>
+              <th></th>
+              <th>品名</th>
+              <th>單價</th>
+              <th style="width: 150px">數量/單位</th>
+              <th class="text-end">金額小計</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 下方template加入v-if="cart.carts"項目 -->
+            <template v-if="cartList">
+              <tr v-for="item in cartProducts" :key="item.id">
+                <td>
+                  <!-- 在按下刪除購物車內某一品項的X按鈕後, 需要顯示旋轉圖示的效果, 藉此告知使用者正在處理中, 故需要使用v-bind搭配disabled標籤; 等待刪除購物車API成功執行後, 在該API內清除 loadingStatus.loadingItem的值, 如此便代表已經更新完成, 就能自動隱藏旋轉圖示; 當其正刪除購物車內某一品項的行為時, 故也將旋轉圖示的效果顯現出來; 若該loadingStatus.loadingItem的值於刪除購物車內某一品項的API執行成功時被清除掉了, 則代表已經處理完成, 故便不需顯示此旋轉圖示, 因此此處會使用v-if來進行判斷 -->
+                  <button type="button" class="btn btn-outline-danger btn-sm"
+                  @click="removeCartItem(item.id)"
+                  :disabled="loadingStatus.loadingItem === item.id">
+                    <i class="fas fa-spinner fa-pulse" 
+                    v-if="loadingStatus.loadingItem === item.id"></i>
+                    x
+                  </button>
+                </td>
+                <td>
+                  {{ item.product.title }}
+                  <div class="text-success" v-if="item.coupon">
+                    已套用優惠券
+                  </div>
+                </td>
+                <!-- 自行加入產品"單價"欄位 -->
+                <td>
+                  {{ item.product.price }}
+                </td>
+                <td>
+                  <div class="input-group input-group-sm">
+                    <div class="input-group mb-3">
+                      <!-- 在調整數量後, 需要暫時停止調整數量的往上及往下按鈕, 故需要使用v-bind搭配disabled標籤; 等待更新購物車API成功執行後, 在該API內清除 loadingStatus.loadingItem的值, 如此便代表已經更新完成, 就解除暫時停止調整數量的功能 -->
+                      <input v-model.number="item.qty" min="1" type="number" class="form-control text-end" @blur="updateCart(item)"
+                      :disabled="loadingStatus.loadingItem === item.id">
+                      <span class="input-group-text" id="basic-addon2">{{ item.product.unit }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-end">
+                  <small class="text-success" v-if="cartList.total !== cartList.final_total">折扣價：</small>
+                  {{ item.final_total }}
+                </td>
+              </tr>
+            </template>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4" class="text-end">總計</td>
+              <td class="text-end">{{ cartList.total }}</td>
+            </tr>
+            <tr v-if="cartList.total !== cartList.final_total">
+              <td colspan="4" class="text-end text-success">折扣價</td>
+              <td class="text-end text-success">{{ cartList.final_total }}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- 自行新增一個表格, 當購物車內沒有品項時, 則顯示該文字內容; 若有品項則該文字會自動隱藏起來 -->
+        <table class="table align-middle">
+          <div v-if="!this.cartProducts.length"
+          align="center" style="border:2px dashed rgb(8, 151, 240)">
+            <h5 style="color:rgb(8, 151, 240);" >購物車內沒有品項</h5>
+          </div>
+        </table>
+
+      </div>
+
+      <!-- 表單部份請參考預習影片製作及VeeValidate驗證 -->
+
+      <!-- form表單請放在<div class="container">內, 表單開始 -->
+      <div class="my-5 row justify-content-center">
+        <!-- 使用VeeValidate套件的步驟五(1): 進行驗證內容的調整, 將form的頭尾標籤都改成v-form, 且加入v-slot, 將元件本身的資源提取出來做使用, 將errors提取出來並呈現在畫面上, 這樣方便得知製作表單驗證的過程中有沒有錯誤 -->
+        <v-form ref="formContent" class="col-md-6" @submit="createOrder()" v-slot="{ errors }">
+          <!-- {{ errors }} -->
+
+          <div class="mb-3">
+            <label for="name" class="form-label">姓名</label>
+            <!-- 使用VeeValidate套件的步驟七(1): 將input標籤改成v-field, 且記得v-field這是一個元件, 因此要有元件的結尾標籤; 且這裡使用v-bind綁定isPhoneNumber這個自定義的方法 -->
+            <!-- 使用VeeValidate套件的步驟七(3): 在此處綁定v-model, 藉此當表單內容都有正確輸入後, 可以正確送出訂購表單資訊-->
+            <!-- 此處同下方使用VeeValidate套件的步驟六(4)的說明, 在<v-field>元件內的name='姓名'與:class="{ 'is-invalid':errors['姓名'], 此二者的名稱必須對應, (且'is-invalid'是使用'-'符號, 而非使用'_'符號串接), 且error-message元件內的name="姓名"也必須要有所對應, 當三者都對應時, 才能正確在畫面上顯示有套用BootStrap5樣式的錯誤紅字提示 -->
+            <v-field id="name" name="姓名" type="text" class="form-control" 
+            rules="required" v-model="formOrder.user.name" 
+            :class="{ 'is-invalid':errors['姓名']  }" 
+            placeholder="請輸入姓名">
+            </v-field>
+            <error-message name="姓名" class="invalid-feedback">
+            </error-message>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <!-- 使用VeeValidate套件的步驟六(1): 將v-field元件放在這裡, 也就是將原本input標籤改成v-field元件, 且因為是一個元件, 故記得頭尾都要有這個元件標籤 -->
+            <!-- 使用VeeValidate套件的步驟六(3): 為這個欄位加上想要套用的驗證規則rules, 且如果要套用多個規則, 且記得用'|'符號隔開各個規則, 且記得不需有空白格隔開, 直接相連在一起即可  -->
+            <!-- 使用VeeValidate套件的步驟六(4): 為這個欄位的驗證訊息套用Bootstrap5的樣式, 因此使用:class="{...}", 此處將Bootstrap5的樣式'is-invalid'加進來, 將v-slot內取出來的資源errors傳過來此處, 如果它有錯誤訊息時, 此錯誤訊息會套用'is-invalid'這個樣式在畫面上進行呈現, 而errors['email']內的'email'此名稱必須要對應到<v-field>元件標籤內的name="xxx", 這樣子才能抓到要驗證的對象, 且補充說明:在<error-message>元件標籤內的name='email'此名稱, 必須要搭配此處<v-field>的'is-invalid'的'email', 才能正確顯示出畫面上的紅字提示文字 -->
+            <!-- 使用VeeValidate套件的步驟七(2): 在此處綁定v-model, 當表單內容都有正確輸入後(email和電話), 可以在console視窗內看到送出的表單資訊-->
+            <v-field id="email" name="email" type="email" class="form-control" 
+            rules="email|required" v-model="formOrder.user.email" 
+            :class="{ 'is-invalid':errors['email']  }"
+            placeholder="請輸入Email" >
+            </v-field>
+            <!-- 使用VeeValidate套件的步驟六(2): 將error-message元件放在這裡, 也就是將原本span標籤改成error-message元件, 且因為是一個元件, 故記得頭尾都要有這個元件標籤; 且error-message必須要對應到想要驗證的v-field的name屬性名稱, 故在此為error-message元件加上想要對應的name, 也就是name="email" -->
+            <error-message name="email" class="invalid-feedback">
+            </error-message>
+          </div>
+    
+          <!-- 手機號碼的驗證, 使用自定義的驗證規則方法) -->
+          <!-- <div class="mb-3">
+            <label for="phone" class="form-label">手機號碼(使用自定義的驗證規則方法)</label>
+            <v-field id="phone" name="手機號碼" type="text" class="form-control" 
+            :rules="isPhoneNumber" v-model="formOrder.user.phone" 
+            :class="{ 'is-invalid':errors['手機號碼'] }" 
+            placeholder="請輸入手機號碼">
+            </v-field>
+            <error-message name="手機號碼" class="invalid-feedback">
+            </error-message>
+          </div> -->
+    
+          <!-- 因為此處使用到的內建規則較多, 請記得每一個規則(required, numeric, min, max都要在本檔案內進行引入) -->
+          <div class="mb-3">
+            <label for="tel" class="form-label">電話</label>
+            <v-field id="tel" name="電話" type="tel" 
+            class="form-control" 
+            rules="required|numeric|min:8|max:10" v-model="formOrder.user.tel" 
+            :class="{ 'is-invalid':errors['電話'] }" 
+            placeholder="請輸入電話">
+            </v-field>
+            <error-message name="電話" class="invalid-feedback">
+            </error-message>
+          </div>
+    
+          <div class="mb-3">
+            <label for="address" class="form-label">地址</label>
+            <v-field id="address" name="地址" type="text" class="form-control" 
+            rules="required" v-model="formOrder.user.address"
+            :class="{ 'is-invalid':errors['地址'] }"
+            placeholder="請輸入地址">
+            </v-field>
+            <error-message name="地址" class="invalid-feedback">
+            </error-message>
+          </div>
+    
+          <!-- 此處留言為非必填, 故不需對它進行表單驗證 -->
+          <div class="mb-3">
+            <label for="message" class="form-label">留言</label>
+            <textarea id="message" name="message" class="form-control" cols="30" rows="10" v-model="formOrder.message"
+            placeholder="請輸入留言">
+            </textarea>
+          </div>
+    
+          <!-- 在此將送出訂單按鈕外層加上一個<div>標籤並且class設為text-end, 讓按鈕能夠靠右對齊呈現 -->
+          <!-- 預設已經將submit加上驗證了, 故不需要修改任何內容即有效果, 可以直接在網頁上按下submit按鈕試試看 -->
+          <div class="text-end">
+            <button class="btn btn-danger" type="submit">送出訂單</button>
+          </div>
+        </v-form>
+      </div>
+      <!-- form表單結束 -->
+    </div>
+
+    <!-- 產品內容的Modal(適用新增產品及編輯產品) -->
+    <div id="productModal" ref="productModal" class="modal fade" tabindex="-1" aria-labelledby="productModalLabel"
+    aria-hidden="true">
+
+      <!-- 已將"產品內容的Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(singleProduct, cartList, )或方法(addToCart)透過內部元件變數(在此依前述規則修改其命名為single-product, cart-list, addToCart)通通傳入x-template樣板內使用, 且在該樣板內則維持使用props內所命名的資料或方法的英文大小寫字母不變, 例如:single-product在props內定義的是有大小寫的singleProduct, 在樣板內就直接使用singleProduct即可-->
+      <!-- 使用emit, 將內部資料(emitInfoFromComponent)傳遞給外部方法(addToCart)進行接收, 以利完成使用者在Modal內將某產品與數量加入購物車的行為, 撰寫口訣一樣是:前內後外, 且記得在這裡因為HTML的屬性名稱僅限小寫英文字母, 因此要把大寫字母轉成小寫且用"-"符號連接(將emitInfoFromComponent改成emit-info-from-component)"-->
+      <product_modal
+      :single-product="singleProduct"
+      :cart-list="cartList"
+      :add-to-cart="addToCart"
+      @emit-info-from-component="addToCart"
+      >
+      </product_modal>
+    </div>
+
+  </div>
+
+
+  <!-- 使用x-template將可讓"產品內容Modal"的元件能重複在Vue的各處被使用; 請記得在index.js內進行元件的匯入以及區域元件的註冊, 如此才能使用該product_modal元件 -->
+  <script type="text/x-template" id="product_modal_template">
+    <!-- <div class="modal fade" id="productModal" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true" ref="modal"> -->
+      <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content border-0">
+          
+          <div class="modal-header bg-dark text-white">
+            <h5 class="modal-title" id="exampleModalLabel">
+              <span>
+                {{ singleProduct.title }}
+              </span>
+          </h5>
+            <button type="button" class="btn-close"
+              data-bs-dismiss="modal" aria-label="Close">
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div class="row">
+
+              <div class="col-sm-6">
+                <img class="img-fluid" :src="singleProduct.imageUrl" alt="">
+              </div>
+
+              <div class="col-sm-6">
+                <span class="badge bg-secondary rounded-pill">{{ singleProduct.category }}</span>
+                <p>商品描述：1 {{ singleProduct.unit}}</p>
+                <p>商品內容：{{ singleProduct.description }}</p>
+                  <del class="h6">原價 {{ singleProduct.origin_price }} 元</del>
+                  <div class="h5">現在只要 {{ singleProduct.price }} 元</div>
+                <div>
+                  <div class="input-group">
+                    <!-- 此處的v-model.number="qty", 其qty是定義在modal元件內的qty(的值) -->
+                    <input type="number" class="form-control"
+                      min="1" v-model.number="qty">
+                    <!-- 此處emitGetModalProductIdAndQty方法定義於Modal元件內, 且將產品的id與使用者選擇的訂購數量(以v-modal綁定modal元件內的qty)當作參數傳入該Modal內的方法裡, 再透過emit方式傳給外部的方法做接收, 進行加入購物車的行為 -->
+                    <button type="button" class="btn btn-primary"
+                    @click="emitGetModalProductIdAndQty(singleProduct.id, qty)">
+                    加到購物車</button>
+                  </div>
+                </div>
+              </div>
+              <!-- col-sm-6 end -->
+            </div>
+          </div>
+        </div>
+      </div>
+  </script>
+
+  <!-- 透過CDN方式引用axios.js檔 -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
+    integrity='sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=='
+    crossorigin='anonymous'></script>
+  <!-- 使用CDN方式引用Bootstrap JavaScript 插件, 一共有兩個來源都需要引入, 詳情可參考:https://bootstrap5.hexschool.com/docs/5.0/getting-started/introduction/#separate -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
+    integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"
+    integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc"
+    crossorigin="anonymous"></script>
+  <!-- 透過CDN方式引用Vue.js檔 -->
+  <script src="https://unpkg.com/vue@next"></script>
+  <!-- 透過CDN方式引用VeeValidate檔案 -->
+  <script src="https://unpkg.com/vee-validate@next"></script>
+  <script src="https://unpkg.com/@vee-validate/i18n@4.1.0"></script>
+  <script src="https://unpkg.com/@vee-validate/rules"></script>
+
+  <!-- <script src="./javascript/app2.js" type="module"></script> -->
+
+  <!-- 使用VeeValidate套件的步驟一:引用VeeValidate套件的3個CDN -->
+  <!-- 將VeeValidate的CDN主套件引用進來 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/4.1.17/vee-validate.min.js"></script>
+  <!-- 將VeeValidate的驗證規則引用進來 -->
+  <script src="https://cdn.jsdelivr.net/npm/@vee-validate/i18n@4.1.17/dist/vee-validate-i18n.min.js"></script>
+  <!-- 將eeValidate的多國語系引用進來, 因此驗證結果可以顯示中文 -->
+  <script src="https://cdn.jsdelivr.net/npm/@vee-validate/rules@4.1.17/dist/vee-validate-rules.min.js"></script>
+
+  <script src="./index.js" type="module"></script>
+</body>
+
+</html>
