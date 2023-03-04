@@ -11,7 +11,7 @@
   <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css'
     integrity='sha512-q3eWabyZPc1XTCmF+8/LuE1ozpg5xxn7iO89yfSOd5/oKvyqLngoNGsx8jq92Y8eXJ/IRxQbEC+FGSYxtk2oiw=='
     crossorigin='anonymous' />
-  <!-- VueLoading套件的樣式放在這裡, 測試看看是否出錯 -->
+  <!-- 透過CDN方式引入VueLoading套件的樣式-->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@6/dist/css/index.css"/>
 </head>
 
@@ -329,25 +329,16 @@
   <!-- 透過CDN方式引用Vue檔案; 使用VueLoading套件, 也需要引用它 -->
   <script src="https://unpkg.com/vue@next"></script>
 
-  <!-- 透過CDN方式引用VeeValidate檔案 -->
-  <script src="https://unpkg.com/vee-validate@next"></script>
-  <script src="https://unpkg.com/@vee-validate/i18n@4.1.0"></script>
-  <script src="https://unpkg.com/@vee-validate/rules"></script>
-
-  <!-- <script src="./javascript/app2.js" type="module"></script> -->
-
   <!-- 使用VeeValidate套件的步驟一:引用VeeValidate套件的3個CDN -->
   <!-- 將VeeValidate的CDN主套件引用進來 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/4.1.17/vee-validate.min.js"></script>
+  <script src="https://unpkg.com/vee-validate@next"></script>
   <!-- 將VeeValidate的驗證規則引用進來 -->
-  <script src="https://cdn.jsdelivr.net/npm/@vee-validate/i18n@4.1.17/dist/vee-validate-i18n.min.js"></script>
+  <script src="https://unpkg.com/@vee-validate/i18n@4.1.0"></script>
   <!-- 將eeValidate的多國語系引用進來, 因此驗證結果可以顯示中文 -->
-  <script src="https://cdn.jsdelivr.net/npm/@vee-validate/rules@4.1.17/dist/vee-validate-rules.min.js"></script>
+  <script src="https://unpkg.com/@vee-validate/rules"></script>
 
   <!-- 透過CDN方式引用VueLoading檔案 -->
   <script src="https://cdn.jsdelivr.net/npm/vue-loading-overlay@6"></script>
-  <!-- 用CDN方式引入VueLoading套件的樣式, 請放在這裡 -->
-  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@6/dist/css/index.css"/> -->
 
   <script src="./index.js" type="module"></script>
 </body>

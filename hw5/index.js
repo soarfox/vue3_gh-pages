@@ -71,8 +71,7 @@ const app = createApp({
   methods:{
     // 取得產品列表資料, 依資料數目來決定頁數有幾頁, 且如果要決定當前要跳到第幾頁, API本身即可使用?page=後方加上一個數字來跳到該頁的畫面, 故在此將其加上一個變數, 來決定要跳到第幾頁(如果資料有11筆以上, 則第11~20筆資料會顯示於第二頁裡), 而如果直接寫getProducts(pageObj), 則pageObj預設會是undefined, 故需要使用"參數預設值"的方式(pageObj = 1), 也就是如果沒有提供pageObj參數的內容, 則將其預設值設定為1, 這是ES6的寫法
     getProducts(pageObj = 1) {
-      // this.isLoading = true;
-      axios.get(`${this.apiUrl}/api/${this.apiPath}/products/?page=${pageObj}`)
+          axios.get(`${this.apiUrl}/api/${this.apiPath}/products/?page=${pageObj}`)
           .then((response) => {
               // 當產品讀取完成, 關閉VueLoading效果
               this.isLoading = false;
