@@ -269,6 +269,6 @@ const app = createApp({
 app.component('VForm', VeeValidate.Form);
 app.component('VField', VeeValidate.Field);
 app.component('ErrorMessage', VeeValidate.ErrorMessage);
-// 進行VueLoading套件的元件註冊_正常可用
-app.component("loading", VueLoading.Component);
+// 進行VueLoading套件的元件註冊
+app.component("VLoading", VueLoading.Component);
 app.mount('#app'); 
