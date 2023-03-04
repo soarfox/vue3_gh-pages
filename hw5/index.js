@@ -32,7 +32,11 @@ const { createApp } = Vue;
 const app = createApp({
   data() {
     return {
-      testData:'test 123456789',
+      testTesting:'test 123456789',
+      // 建立VueLoading的變數: isLoading, loadingColor和loadingBackgroundColor
+      isLoading: true,
+      loadingColor: '#FFC78E',
+      loadingBackgroundColor: '#FFFAF4',
       apiUrl: 'https://vue3-course-api.hexschool.io/v2',
       apiPath: 'cheetah116',
       // 空陣列資料, 用來接收從axios回傳回來的商品資料
@@ -69,6 +73,9 @@ const app = createApp({
     getProducts(pageObj = 1) {
       axios.get(`${this.apiUrl}/api/${this.apiPath}/products/?page=${pageObj}`)
           .then((response) => {
+              // 當產品讀取完成, 關閉VueLoading效果
+              this.isLoading = false;
+              // console.log("產品讀取完成, 關閉VueLoading效果");
 
               this.products = response.data.products;
               // console.log(response.data);
@@ -262,5 +269,6 @@ const app = createApp({
 app.component('VForm', VeeValidate.Form);
 app.component('VField', VeeValidate.Field);
 app.component('ErrorMessage', VeeValidate.ErrorMessage);
-
+// 進行VueLoading套件的元件註冊_正常可用
+app.component("loading", VueLoading.Component);
 app.mount('#app'); 
