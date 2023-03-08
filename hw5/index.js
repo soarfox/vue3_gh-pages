@@ -246,6 +246,10 @@ const app = createApp({
         const phoneNumber = /^(09)[0-9]{8}$/
         return phoneNumber.test(value) ? true : '手機號碼 需要填寫正確的手機號碼'
       },
+      // 關閉"查看更多"Modal視窗的方法
+      closeModalWindow(){
+        productModalWindow.hide();
+      }
   },
   // 將元件在此進行註冊(元件採用首字大寫的方式命名, 這跟Vite的規則是一樣的)
   components:{

@@ -1,6 +1,6 @@
 export default {
-    // // 要將資料(singleProduct, cartList)及方法(addToCart)傳入樣板裡, 否則會出現找不到Cannot read properties of undefined (reading 'xxxx')...等各種的紅字錯誤訊息或黃字提醒訊息
-    props: ['singleProduct', 'cartList', 'addToCart'],
+    // // 要將資料(singleProduct, cartList)及方法(addToCart, closeModalWindow)傳入樣板裡, 否則會出現找不到Cannot read properties of undefined (reading 'xxxx')...等各種的紅字錯誤訊息或黃字提醒訊息
+    props: ['singleProduct', 'cartList', 'addToCart', 'closeModal'],
     data(){
         return{
             // 在Modal內, 將預設要加入購物車內的產品數量設為1

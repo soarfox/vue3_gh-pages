@@ -250,13 +250,14 @@
     <div id="productModal" ref="productModal" class="modal fade" tabindex="-1" aria-labelledby="productModalLabel"
     aria-hidden="true">
 
-      <!-- 已將"產品內容的Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(singleProduct, cartList, )或方法(addToCart)透過內部元件變數(在此依前述規則修改其命名為single-product, cart-list, addToCart)通通傳入x-template樣板內使用, 且在該樣板內則維持使用props內所命名的資料或方法的英文大小寫字母不變, 例如:single-product在props內定義的是有大小寫的singleProduct, 在樣板內就直接使用singleProduct即可-->
+      <!-- 已將"產品內容的Modal"改成元件化, 當在傳遞props時, 如果遇到大寫字母則要改成小寫字母且前方要加上-符號, 撰寫口訣一樣是:前內後外, 也就是將外部資料(singleProduct, cartList, )或方法(addToCart, closeModalWindow)透過內部元件變數(在此依前述規則修改其命名為single-product, cart-list, add-to-cart, close-modal(註:此項在props內名稱為closeModal, 故在此為close-modal))通通傳入x-template樣板內使用, 且在該樣板內則維持使用props內所命名的資料或方法的英文大小寫字母不變, 例如:single-product在props內定義的是有大小寫的singleProduct, 在樣板內就直接使用singleProduct即可-->
       <!-- 使用emit, 將內部資料(emitInfoFromComponent)傳遞給外部方法(addToCart)進行接收, 以利完成使用者在Modal內將某產品與數量加入購物車的行為, 撰寫口訣一樣是:前內後外, 且記得在這裡因為HTML的屬性名稱僅限小寫英文字母, 因此要把大寫字母轉成小寫且用"-"符號連接(將emitInfoFromComponent改成emit-info-from-component)"-->
       <product_modal
       :single-product="singleProduct"
       :cart-list="cartList"
       :add-to-cart="addToCart"
       @emit-info-from-component="addToCart"
+      :close-modal = "closeModalWindow"
       >
       </product_modal>
     </div>
@@ -278,7 +279,7 @@
               </span>
           </h5>
             <button type="button" class="btn-close"
-              data-bs-dismiss="modal" aria-label="Close">
+            @click="closeModal()" aria-label="Close">
             </button>
           </div>
 
