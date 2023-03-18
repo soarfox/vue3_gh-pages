@@ -1,0 +1,2 @@
+// 在Bootstrap官網中找到sass頁面與安裝方式: https://getbootstrap.com/docs/5.3/customize/sass/ , 直接引入@import "../node_modules/bootstrap/scss/bootstrap"; 但在Vite裡不需要"../node_modules"故將其移除
+@import "bootstrap/scss/bootstrap";
