@@ -71,7 +71,7 @@
       </table>
       <!-- 將已經註冊好的元件(pagination)放在此處 -->
       <!-- 口訣:先內(部元件變數)後外(部資料變數), 且元件變數的名稱記得以小寫為主, :innerpages="pageObj -->
-      <!-- 在此使用emit的寫法, 把getData方法當成事件來傳入pagination元件裡面, 口訣一樣是先內後外, 內部是change-page, 而外部的方法名稱是getData -->
+      <!-- 在此使用emit的寫法, 把內層change-page事件傳出來的內容, 由外層的getData方法進行接收, 口訣一樣是先內後外, 內部是change-page, 而外部的方法名稱是getData -->
       <pagination_emitver :innerpages="pageObj"
         :get-products="getData"
         @change-page="getData"></pagination_emitver>
